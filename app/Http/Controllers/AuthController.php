@@ -55,7 +55,10 @@ class AuthController extends Controller
 
             $data = $request->all();
             $data['password'] = Hash::make($data['password']);
-            User::query()->create($data);
+            $user = User::query()->create($data);
+            if ($user){
+                Auth::login($user);
+            }
 
             return Redirect::route('home')->withSuccess('Great! You have Successfully Register');
         } catch (\Exception $e) {
@@ -70,7 +73,7 @@ class AuthController extends Controller
         return Redirect::route('home');
     }
 
-    public function info(Request $request)
+    public function info()
     {
 
         return view('info');

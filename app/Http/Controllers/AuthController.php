@@ -39,8 +39,17 @@ class AuthController extends Controller
         }
     }
 
-    public function register()
+    public function register(Request $request)
     {
+        $queryString = $request->query();
+        if (count($queryString) > 0) {
+            dd('from survey hr');
+        }
+        dd('from hr pro');
+        $app_key = $request->get(env('APP_SURVEY_KEY'));
+        if (!$app_key){
+            return \redirect()->back();
+        }
         return view('register');
     }
 

@@ -41,20 +41,35 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        $queryString = $request->query();
-        if (count($queryString) > 0) {
-            dd('from survey hr');
+
+        $queryStrings = $request->query();
+        $app_key = env('APP_SURVEY_KEY');
+        $app_secret = env('APP_SURVEY_SECRET');
+        $from_survey_hr = false;
+        if (count($queryStrings) > 0) {
+            if (!$app_key || !$app_secret) {
+                abort(403);
+            }
+            $secret_value = $queryStrings[$app_key];
+            if (!$secret_value) {
+                return Redirect::route('home');
+            }
+
+            if (strcmp($secret_value, env('APP_SURVEY_SECRET')) != 0) {
+                return Redirect::route('home');
+            }
+            $from_survey_hr = true;
         }
-        dd('from hr pro');
-        $app_key = $request->get(env('APP_SURVEY_KEY'));
-        if (!$app_key){
-            return \redirect()->back();
-        }
-        return view('register');
+
+        return view('register', ['from_survey_hr' => $from_survey_hr]);
     }
 
     public function handleRegister(Request $request)
     {
+        dd($request->all());
+        //luu thong tin vao db hrPro
+        //call Api sang surveyHR de dang ki tai khoan
+        // redirect va login vao surveyHR
         try {
             request()->validate([
                 'name' => 'required',
@@ -65,7 +80,7 @@ class AuthController extends Controller
             $data = $request->all();
             $data['password'] = Hash::make($data['password']);
             $user = User::query()->create($data);
-            if ($user){
+            if ($user) {
                 Auth::login($user);
             }
 

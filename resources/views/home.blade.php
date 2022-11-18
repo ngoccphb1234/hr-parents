@@ -32,18 +32,18 @@
         @endif
 
     </div>
-        <div class="relative flex items-top justify-center min-h-screen bg-gray-100 dark:bg-gray-900 sm:items-center py-4 sm:pt-0">
+        <div class="relative flex items-top justify-center min-h-screen bg-gray-100 dark:bg-gray-900 sm:items-center py-4 sm:pt-0" style="background-color: #2d3748">
             @if (Route::has('login'))
                 <div class="hidden fixed top-0 right-0 px-6 py-4 sm:block">
                     @auth
                         <h4 class="dark:text-white">Hello: {{auth()->user()['name']}} !</h4>
-                        <a href="{{route('info')}}" class="text-sm text-gray-700 dark:text-gray-500 underline">Info</a>
-                        <a href="{{route('logout')}}" class="text-sm text-gray-700 dark:text-gray-500 underline">logout</a>
+                        <a href="{{route('info')}}" class="text-sm text-gray-700 dark:text-gray-500 underline" style="color: #edf2f7">Info</a>
+                        <a href="{{route('logout')}}" class="text-sm text-gray-700 dark:text-gray-500 underline" style="color: #edf2f7">logout</a>
                     @else
-                        <a href="{{ route('login') }}" class="text-sm text-gray-700 dark:text-gray-500 underline">Log in</a>
+                        <a href="{{ route('login') }}" class="text-sm text-gray-700 dark:text-gray-500 underline" style="color: #edf2f7">Log in</a>
 
                         @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="ml-4 text-sm text-gray-700 dark:text-gray-500 underline">Register</a>
+                            <a href="{{ route('register') }}" class="ml-4 text-sm text-gray-700 dark:text-gray-500 underline" style="color: #edf2f7">Register</a>
                         @endif
                     @endauth
                 </div>

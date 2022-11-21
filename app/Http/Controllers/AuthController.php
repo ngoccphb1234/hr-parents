@@ -14,67 +14,64 @@ use Illuminate\Support\Facades\Session;
 
 class AuthController extends Controller
 {
+    private string $app_key = 'survey-hr';
+    private string $app_secret = 'sGFdsivu221hgg';
+
     public function error()
     {
         return view('error');
     }
 
-    public function login()
+    public function login(Request $request)
     {
-        return view('login');
+        $from_survey_hr = $request->get('from_survey_hr');
+        return view('login', ['from_survey_hr' => $from_survey_hr]);
     }
 
     public function handleLogin(Request $request)
     {
         try {
+            $from_survey_hr = $request->get('fromSurveyHr');
             $request->validate([
                 'email' => 'required|email',
                 'password' => 'required|min:6',
             ]);
             $credentials = $request->only('email', 'password');
             if (Auth::attempt($credentials)) {
+                $user = User::query()->where('email', '=', $credentials['email'])->first();
+                if (!$user) {
+                    throw new \Exception('user not found has been deleted.');
+                }
+                $redis = Redis::connection();
+//                $exist_redis_key = $redis->get($user['email']);
+                $new_user = [
+                    'email' => $user['email'],
+                    'name' => $user['name']
+                ];
+                $redis->set($user['email'], json_encode($new_user));
+                if ((bool)$from_survey_hr === true) {
+                    return \redirect('http://hr-survey.local:9000/?user_email=' . $user['email']);
+                }
                 // Authentication passed...
                 return Redirect::route('home')->withSuccess('Logged in!');
             }
-            return Redirect::route('home')->withErrors('Oppes! You have entered invalid credentials');
+            return Redirect::back()->withErrors('Oppes! You have entered invalid credentials');
         } catch (\Exception $e) {
-            return Redirect::route('login')->withErrors($e->getMessage());
+            return Redirect::route('error')->withErrors($e->getMessage());
         }
     }
 
     public function register(Request $request)
     {
-
-        $queryStrings = $request->query();
-        $app_key = 'survey-hr';
-        $app_secret = 'sGFdsivu221hgg';
-        $from_survey_hr = false;
-        if (count($queryStrings) > 0) {
-            if (!$app_key || !$app_secret) {
-                abort(403);
-            }
-            $secret_value = null;
-            if (isset($queryStrings[$app_key])) {
-                $secret_value = $queryStrings[$app_key];
-            }
-            if (!$secret_value) {
-                return Redirect::route('home');
-            }
-
-            if (strcmp($secret_value, $app_secret) != 0) {
-                return Redirect::route('home');
-            }
-            $from_survey_hr = true;
-        }
-
+        $from_survey_hr = $request->get('from_survey_hr');
         return view('register', ['from_survey_hr' => $from_survey_hr]);
     }
 
     public function handleRegister(Request $request)
     {
         DB::beginTransaction();
-        $app_key = 'survey-hr';
-        $app_secret = 'sGFdsivu221hgg';
+//        $app_key = 'survey-hr';
+//        $app_secret = 'sGFdsivu221hgg';
         $from_survey_hr = $request->get('fromSurveyHr');
         //luu thong tin vao db hrPro
         //call Api sang surveyHR de dang ki tai khoan
@@ -90,17 +87,19 @@ class AuthController extends Controller
             $data['password'] = Hash::make($data['password']);
             $user = User::query()->create($data);
             if ($user) {
-                Auth::login($user);
+                Auth::loginUsingId($user->id);
+            } else {
+                throw new \Exception('user not found has been deleted.');
             }
-            if ($from_survey_hr == true) {
-                $url = 'http://127.0.0.1:8001/api/register';
+            if ((bool)$from_survey_hr === true) {
+                $url = 'http://hr-survey.local:9000/api/register';
 
                 $response = Http::withHeaders([
                     'Content-Type' => 'application/json',
-                    $app_key => $app_secret
+                    $this->app_key => $this->app_secret
                 ])
-                    ->post($url, $request->all());
-                if ($response->failed()){
+                    ->post($url, $data);
+                if ($response->failed()) {
                     throw new \Exception('call api register survey hr failed.');
                 }
                 $is_redirect_to_survey_hr = true;
@@ -108,11 +107,15 @@ class AuthController extends Controller
             DB::commit();
             $redis = Redis::connection();
             $exist_redis_key = $redis->get($user['email']);
-            if (!$exist_redis_key){
-                $redis->set($user['email'], $user);
+            if (!$exist_redis_key) {
+                $new_user = [
+                    'name' => $user['name'],
+                    'email' => $user['email'],
+                ];
+                $redis->set($user['email'], json_encode($new_user));
             }
-            if ($is_redirect_to_survey_hr){
-                return \redirect('http://localhost:8001?user_email='.$user['email']);
+            if ($is_redirect_to_survey_hr) {
+                return \redirect('http://hr-survey.local:9000/?user_email=' . $user['email']);
             }
             return Redirect::route('home')->withSuccess('Great! You have Successfully Register');
         } catch (\Exception $e) {
@@ -123,6 +126,27 @@ class AuthController extends Controller
 
     public function logout()
     {
+        $user = \auth()->user();
+        $redis = Redis::connection();
+       $user_redis = $redis->get($user['email']);
+
+       if ($user_redis){
+           $get_user_redis = json_decode($user_redis);
+           $email = [
+             'user_email' => $get_user_redis->email
+           ];
+           $url = 'http://hr-survey.local:9000/logout';
+
+           $response = Http::withHeaders([
+               'Content-Type' => 'application/json',
+               $this->app_key => $this->app_secret
+           ])
+               ->post($url, $email);
+           if ($response->failed()) {
+               throw new \Exception('call api register survey hr failed.');
+           }
+           dd($response->json());
+       }
         Session::flush();
         Auth::logout();
         return Redirect::route('home');
@@ -130,11 +154,7 @@ class AuthController extends Controller
 
     public function info()
     {
-        $redis = Redis::connection();
-        dd($redis->get('hallo'));
-//        $get = $redis->get('ngoc');
-        dd($redis->keys('*'));
-        return view('info', ['user2' => '\ss']);
+        return view('info');
     }
 
     public function home()

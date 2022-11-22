@@ -25,6 +25,10 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $from_survey_hr = $request->get('from_survey_hr');
+        if ($from_survey_hr === true && Auth::check()){
+            $user = \auth()->user();
+            return \redirect('http://hr-survey.local:9000/?user_code=' . $user['user_code']);
+        }
         return view('login', ['from_survey_hr' => $from_survey_hr]);
     }
 
@@ -46,11 +50,12 @@ class AuthController extends Controller
 //                $exist_redis_key = $redis->get($user['email']);
                 $new_user = [
                     'email' => $user['email'],
-                    'name' => $user['name']
+                    'name' => $user['name'],
+                    'user_code' => $user['user_code'],
                 ];
-                $redis->set($user['email'], json_encode($new_user));
+                $redis->set($user['user_code'], json_encode($new_user));
                 if ((bool)$from_survey_hr === true) {
-                    return \redirect('http://hr-survey.local:9000/?user_email=' . $user['email']);
+                    return \redirect('http://hr-survey.local:9000/?user_code=' . $user['user_code']);
                 }
                 // Authentication passed...
                 return Redirect::route('home')->withSuccess('Logged in!');
@@ -85,6 +90,7 @@ class AuthController extends Controller
             $is_redirect_to_survey_hr = false;
             $data = $request->all();
             $data['password'] = Hash::make($data['password']);
+            $data['user_code'] = substr(md5(mt_rand()), 0, 7);
             $user = User::query()->create($data);
             if ($user) {
                 Auth::loginUsingId($user->id);
@@ -106,16 +112,17 @@ class AuthController extends Controller
             }
             DB::commit();
             $redis = Redis::connection();
-            $exist_redis_key = $redis->get($user['email']);
+            $exist_redis_key = $redis->get($user['user_code']);
             if (!$exist_redis_key) {
                 $new_user = [
                     'name' => $user['name'],
                     'email' => $user['email'],
+                    'user_code' => $user['user_code'],
                 ];
-                $redis->set($user['email'], json_encode($new_user));
+                $redis->set($user['user_code'], json_encode($new_user));
             }
             if ($is_redirect_to_survey_hr) {
-                return \redirect('http://hr-survey.local:9000/?user_email=' . $user['email']);
+                return \redirect('http://hr-survey.local:9000/?user_code=' . $user['user_code']);
             }
             return Redirect::route('home')->withSuccess('Great! You have Successfully Register');
         } catch (\Exception $e) {
@@ -126,27 +133,6 @@ class AuthController extends Controller
 
     public function logout()
     {
-        $user = \auth()->user();
-        $redis = Redis::connection();
-       $user_redis = $redis->get($user['email']);
-
-       if ($user_redis){
-           $get_user_redis = json_decode($user_redis);
-           $email = [
-             'user_email' => $get_user_redis->email
-           ];
-           $url = 'http://hr-survey.local:9000/logout';
-
-           $response = Http::withHeaders([
-               'Content-Type' => 'application/json',
-               $this->app_key => $this->app_secret
-           ])
-               ->post($url, $email);
-           if ($response->failed()) {
-               throw new \Exception('call api register survey hr failed.');
-           }
-           dd($response->json());
-       }
         Session::flush();
         Auth::logout();
         return Redirect::route('home');

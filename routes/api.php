@@ -14,5 +14,5 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-
+Route::post('auth-app', [\App\Http\Controllers\Api\App\AppController::class, 'authApp']);
 

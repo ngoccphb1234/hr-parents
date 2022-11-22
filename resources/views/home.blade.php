@@ -36,9 +36,13 @@
             @if (Route::has('login'))
                 <div class="hidden fixed top-0 right-0 px-6 py-4 sm:block">
                     @auth
-                        <h4 class="dark:text-white">Hello: {{auth()->user()['name']}} !</h4>
+                        <h4 class="dark:text-white" style="color: chartreuse">Hello: {{auth()->user()['name']}} !</h4>
+                        <a href="http://hr-survey.local:9000?user_code={{auth()->user()['user_code']}}" class="text-sm text-gray-700 dark:text-gray-500 underline" style="color: #edf2f7">Go to SurveyHD</a>
+                        <br>
                         <a href="{{route('info')}}" class="text-sm text-gray-700 dark:text-gray-500 underline" style="color: #edf2f7">Info</a>
+                        <br>
                         <a href="{{route('logout')}}" class="text-sm text-gray-700 dark:text-gray-500 underline" style="color: #edf2f7">logout</a>
+                        <br>
                     @else
                         <a href="{{ route('login') }}" class="text-sm text-gray-700 dark:text-gray-500 underline" style="color: #edf2f7">Log in</a>
 

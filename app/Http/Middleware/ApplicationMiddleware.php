@@ -31,11 +31,12 @@ class ApplicationMiddleware
                 if (!$app){
                     return Redirect::back();
                 }
-                $redis = Redis::connection();
-                $redis->set($app['app_key'], $app['code']);
+//                $redis = Redis::connection();
+//                $redis->set($app['app_key'], $app['code']);
                 $from_survey_hr = true;
             }
         }
+
         $request['from_survey_hr'] = $from_survey_hr;
         return $next($request);
 //        $queryString = $request->query('code');

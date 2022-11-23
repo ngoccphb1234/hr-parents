@@ -17,7 +17,7 @@
 </head>
 <body>
 <div class="container-fluid">
-        <h1>form SurveyHR: {{$from_survey_hr ? 'Yes' : 'No'}}</h1>
+{{--        <h1>form SurveyHR: {{$from_survey_hr ? 'Yes' : 'No'}}</h1>--}}
     <div class="row no-gutter">
         <div class="col-md-12 col-lg-12">
             <div class="login d-flex align-items-center py-5">
@@ -27,7 +27,7 @@
                             <h3 class="login-heading mb-4">Register here!</h3>
                             <form action="{{route('handleRegister')}}" method="POST" id="regForm">
                                 {{ csrf_field() }}
-                                <input name="fromSurveyHr" type="hidden" value="{{$from_survey_hr ? 1 : 0}}">
+{{--                                <input name="fromSurveyHr" type="hidden" value="{{$from_survey_hr ? 1 : 0}}">--}}
                                 <div class="form-label-group">
                                     <label for="inputName">Name</label>
                                     <input type="text" id="inputName" name="name" class="form-control"

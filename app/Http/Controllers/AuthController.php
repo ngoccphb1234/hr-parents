@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Application;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -16,6 +18,8 @@ class AuthController extends Controller
 {
     private string $app_key = 'survey-hr';
     private string $app_secret = 'sGFdsivu221hgg';
+    private string $access_token = 'toenken_fdigfj8g832j2j292';
+
 
     public function error()
     {
@@ -59,7 +63,9 @@ class AuthController extends Controller
 //                    return \redirect('http://hr-survey.local:9000/?user_code=' . $user['user_code']);
 //                }
                 // Authentication passed...
-                return Redirect::route('home')->withSuccess('Logged in!');
+                Auth::login($user);
+                return Redirect::route('home');
+
             }
             return Redirect::back()->withErrors('Oppes! You have entered invalid credentials');
         } catch (\Exception $e) {
@@ -109,9 +115,27 @@ class AuthController extends Controller
         return view('info');
     }
 
-    public function home()
+    public function home(Request $request)
     {
-
+        $app_key = $request->get('app_key');
+        if ($app_key){
+            $application = Application::query()->where('app_key', '=', $app_key)->first();
+            if ($application){
+                return \redirect()->to($application->url_callback.'?code='.$application->code);
+            }
+        }
         return view('home');
+    }
+
+    public function authUser(Request $request){
+        $get_access_token = $request->get('access_token');
+        if (!$get_access_token && $get_access_token != $this->access_token){
+            throw new \Exception('khong co quyen truy cap');
+        }
+        //tra ve user
+        if (!Auth::check()){
+            return Redirect::route('home');
+        }
+        return response()->json(\auth()->user());
     }
 }

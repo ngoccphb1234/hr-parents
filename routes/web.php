@@ -22,3 +22,6 @@ Route::get('logout', [AuthController::class, 'logout'])->name('logout');
 Route::post('handle-register', [AuthController::class, 'handleRegister'])->name('handleRegister');
 Route::post('handle-login', [AuthController::class, 'handleLogin'])->name('handleLogin');
 Route::get('error', [AuthController::class, 'error'])->name('error');
+
+Route::post('oauth/user', [AuthController::class, 'authUser']);
+

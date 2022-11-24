@@ -14,5 +14,6 @@ class Application extends Model
         'app_key',
         'app_secret',
         'code',
+        'url_callback'
     ];
 }

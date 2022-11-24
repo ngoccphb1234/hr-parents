@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('app_key')->unique();
             $table->string('app_secret');
+            $table->string('url_callback');
             $table->string('code')->unique();
             $table->timestamps();
         });

@@ -16,9 +16,11 @@ use Illuminate\Support\Facades\Session;
 
 class AuthController extends Controller
 {
-    private string $app_key = 'survey-hr';
-    private string $app_secret = 'sGFdsivu221hgg';
+//    private string $app_key = 'survey-hr';
+    private string $app_secret = 'fdgkijirreijretrete';
     private string $access_token = 'toenken_fdigfj8g832j2j292';
+    private string $app_code = '12345678';
+    private string $key_surveyhr = 'dhughdfugdghfugdhfgh';
 
 
     public function error()
@@ -138,4 +140,46 @@ class AuthController extends Controller
         }
         return response()->json(\auth()->user());
     }
+
+    public function authCallback(Request $request){
+        $app_secret = $request->get('key_secret');
+        if (!$app_secret){
+            return Redirect::route('home');
+        }
+
+        $response = Http::post( 'http://survey.hrpro.local:9000/login-by-hrpro', [
+            'app_code' => $this->app_code,
+            'app_secret' => $app_secret,
+        ]);
+        dd($response);
+
+        if ($response->failed()) {
+            throw new \Exception('Co loi khi goi api hrpro');
+        }
+        return Redirect::to('http://survey.hrpro.local:9000');
+    }
+
+    public function callToSurveyHR(Request $request){
+
+//        if (!Auth::check()){
+//            return Redirect::route('home');
+//        }
+        $response = Http::post( 'http://survey.hrpro.local:9000/api/auth-by-hrpro', [
+            'app_code' => $this->app_code,
+            'app_secret' => $this->app_secret,
+        ]);
+        if ($response->failed()) {
+            throw new \Exception('Co loi khi goi api hrpro');
+        }
+        if (!Auth::check()){
+            return Redirect::route('home');
+        }
+        dd($response->json());
+    }
+
+    public function authorizeApp(Request $request){
+
+    }
 }
+
+

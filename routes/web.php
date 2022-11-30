@@ -25,3 +25,7 @@ Route::get('error', [AuthController::class, 'error'])->name('error');
 
 Route::post('oauth/user', [AuthController::class, 'authUser']);
 
+Route::get('call-to-surveyhr', [AuthController::class, 'callToSurveyHR'])->name('callToSurveyHR');
+Route::get('oauth/authorize', [AuthController::class, 'authorizeApp'])->name('authorize');
+Route::get('auth/callback', [AuthController::class, 'authCallback']);
+

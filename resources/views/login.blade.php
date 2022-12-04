@@ -23,7 +23,6 @@
                             @endforeach
                             <form action="{{route('handleLogin')}}" method="POST" id="logForm">
                                 {{ csrf_field() }}
-                                <input name="fromSurveyHr" type="hidden" value="{{$from_survey_hr ? 1 : 0}}">
                                 <div class="form-label-group">
                                     <label for="inputEmail">Email address</label>
                                     <input type="email" name="email" id="inputEmail" class="form-control" placeholder="Email address" >

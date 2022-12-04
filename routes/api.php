@@ -15,5 +15,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('auth-app', [\App\Http\Controllers\Api\App\AppController::class, 'authApp']);
-Route::post('oauth/token', [\App\Http\Controllers\Api\App\AppController::class, 'authToken']);
+
+Route::post('oauth/user', [\App\Http\Controllers\Api\App\AppController::class, 'authUser']);
 

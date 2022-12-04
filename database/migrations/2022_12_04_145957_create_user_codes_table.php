@@ -13,12 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('applications', function (Blueprint $table) {
+        Schema::create('user_codes', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('app_key')->unique();
-            $table->string('app_secret');
-            $table->string('url_callback');
+            $table->string('code');
+            $table->integer('user_id');
             $table->timestamps();
         });
     }
@@ -30,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('applications');
+        Schema::dropIfExists('user_codes');
     }
 };

@@ -19,7 +19,6 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'user_code',
         'password',
     ];
 
@@ -41,4 +40,9 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function userCode(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(UserCode::class);
+    }
 }

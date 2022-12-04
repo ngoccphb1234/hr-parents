@@ -40,7 +40,7 @@
                         <br>
                         <a href="{{route('info')}}" class="text-sm text-gray-700 dark:text-gray-500 underline" style="color: #edf2f7">Info</a>
                         <br>
-                        <a href="http://hrpro.local:9000/oauth/authorize?app_key=key_fjfue783332" class="text-sm text-gray-700 dark:text-gray-500 underline" style="color: #edf2f7">Go to SurveyHR</a>
+                        <a href="http://survey.hrpro.local:9000/oauth/survey-hr" class="text-sm text-gray-700 dark:text-gray-500 underline" style="color: #edf2f7">Go to SurveyHR</a>
                         <br>
                         <a href="{{route('logout')}}" class="text-sm text-gray-700 dark:text-gray-500 underline" style="color: #edf2f7">logout</a>
                         <br>

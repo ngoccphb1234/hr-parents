@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Application;
 use App\Models\User;
+use App\Models\UserCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -16,11 +18,6 @@ use Illuminate\Support\Facades\Session;
 
 class AuthController extends Controller
 {
-//    private string $app_key = 'survey-hr';
-    private string $app_secret = 'fdgkijirreijretrete';
-    private string $access_token = 'toenken_fdigfj8g832j2j292';
-    private string $app_code = '12345678';
-    private string $key_surveyhr = 'dhughdfugdghfugdhfgh';
 
 
     public function error()
@@ -30,12 +27,8 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $from_survey_hr = $request->get('from_survey_hr');
-        if ($from_survey_hr === true && Auth::check()){
-            $user = \auth()->user();
-            return \redirect('http://hr-survey.local:9000/?user_code=' . $user['user_code']);
-        }
-        return view('login', ['from_survey_hr' => $from_survey_hr]);
+
+        return view('login');
     }
 
     public function handleLogin(Request $request)
@@ -53,17 +46,6 @@ class AuthController extends Controller
                 if (!$user) {
                     throw new \Exception('user not found has been deleted.');
                 }
-//                $redis = Redis::connection();
-//                $exist_redis_key = $redis->get($user['email']);
-//                $new_user = [
-//                    'email' => $user['email'],
-//                    'name' => $user['name'],
-//                    'user_code' => $user['user_code'],
-//                ];
-//                $redis->set($user['user_code'], json_encode($new_user));
-//                if ((bool)$from_survey_hr === true) {
-//                    return \redirect('http://hr-survey.local:9000/?user_code=' . $user['user_code']);
-//                }
                 // Authentication passed...
                 Auth::login($user);
                 return Redirect::route('home');
@@ -91,9 +73,13 @@ class AuthController extends Controller
             ]);
             $data = $request->all();
             $data['password'] = Hash::make($data['password']);
-            $data['user_code'] = substr(md5(mt_rand()), 0, 7);
             $user = User::query()->create($data);
             if ($user) {
+                $code = substr(md5(mt_rand()), 0, 7);
+
+                $userCode = new UserCode([['user_id' => $user['id']],'code' => $code]);
+
+                $user->userCode()->save($userCode);
                 Auth::loginUsingId($user->id);
             } else {
                 throw new \Exception('user not found has been deleted.');
@@ -119,67 +105,82 @@ class AuthController extends Controller
 
     public function home(Request $request)
     {
-        $app_key = $request->get('app_key');
-        if ($app_key){
-            $application = Application::query()->where('app_key', '=', $app_key)->first();
-            if ($application){
-                return \redirect()->to($application->url_callback.'?code='.$application->code);
-            }
-        }
+//        $app_key = $request->get('app_key');
+//        if ($app_key){
+//            $application = Application::query()->where('app_key', '=', $app_key)->first();
+//            if ($application){
+//                return \redirect()->to($application->url_callback.'?code='.$application->code);
+//            }
+//        }
         return view('home');
     }
 
-    public function authUser(Request $request){
-        $get_access_token = $request->get('access_token');
-        if (!$get_access_token && $get_access_token != $this->access_token){
-            throw new \Exception('khong co quyen truy cap');
-        }
-        //tra ve user
-        if (!Auth::check()){
-            return Redirect::route('home');
-        }
-        return response()->json(\auth()->user());
-    }
-
-    public function authCallback(Request $request){
-        $app_secret = $request->get('key_secret');
-        if (!$app_secret){
-            return Redirect::route('home');
-        }
-
-        $response = Http::post( 'http://survey.hrpro.local:9000/login-by-hrpro', [
-            'app_code' => $this->app_code,
-            'app_secret' => $app_secret,
-        ]);
-        dd($response);
-
-        if ($response->failed()) {
-            throw new \Exception('Co loi khi goi api hrpro');
-        }
-        return Redirect::to('http://survey.hrpro.local:9000');
-    }
-
-    public function callToSurveyHR(Request $request){
-
+//    public function authUser(Request $request){
+//        $get_access_token = $request->get('access_token');
+//        if (!$get_access_token && $get_access_token != $this->access_token){
+//            throw new \Exception('khong co quyen truy cap');
+//        }
+//        //tra ve user
 //        if (!Auth::check()){
 //            return Redirect::route('home');
 //        }
-        $response = Http::post( 'http://survey.hrpro.local:9000/api/auth-by-hrpro', [
-            'app_code' => $this->app_code,
-            'app_secret' => $this->app_secret,
-        ]);
-        if ($response->failed()) {
-            throw new \Exception('Co loi khi goi api hrpro');
+//        return response()->json(\auth()->user());
+//    }
+
+//    public function authCallback(Request $request){
+//        $app_secret = $request->get('key_secret');
+//        if (!$app_secret){
+//            return Redirect::route('home');
+//        }
+//
+//        $response = Http::post( 'http://survey.hrpro.local:9000/login-by-hrpro', [
+//            'app_code' => $this->app_code,
+//            'app_secret' => $app_secret,
+//        ]);
+//        dd($response);
+//
+//        if ($response->failed()) {
+//            throw new \Exception('Co loi khi goi api hrpro');
+//        }
+//        return Redirect::to('http://survey.hrpro.local:9000');
+//    }
+
+//    public function callToSurveyHR(Request $request){
+//
+////        if (!Auth::check()){
+////            return Redirect::route('home');
+////        }
+//        $response = Http::post( 'http://survey.hrpro.local:9000/api/auth-by-hrpro', [
+//            'app_code' => $this->app_code,
+//            'app_secret' => $this->app_secret,
+//        ]);
+//        if ($response->failed()) {
+//            throw new \Exception('Co loi khi goi api hrpro');
+//        }
+//        if (!Auth::check()){
+//            return Redirect::route('home');
+//        }
+//        dd($response->json());
+//    }
+
+    public function authorizeApp(Request $request)
+    {
+        $app_key = $request->get('app_key');
+
+        if ($app_key) {
+            $application = Application::query()->where('app_key', '=', $app_key)->first();
+            if ($application && Auth::check()) {
+                $user_code = UserCode::query()->where('user_id', '=', Auth::id())->first();
+                if (!$user_code){
+                    throw new \Exception('ko co user code');
+                }
+                return \redirect()->to($application->url_callback . '?code=' . $user_code['code']);
+            }
         }
-        if (!Auth::check()){
-            return Redirect::route('home');
-        }
-        dd($response->json());
+        throw new \Exception('ko co app key');
     }
 
-    public function authorizeApp(Request $request){
 
-    }
 }
 
 

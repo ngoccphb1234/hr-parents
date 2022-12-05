@@ -42,6 +42,10 @@
                         <br>
                         <a href="http://survey.hrpro.local:9000/oauth/survey-hr" class="text-sm text-gray-700 dark:text-gray-500 underline" style="color: #edf2f7">Go to SurveyHR</a>
                         <br>
+                        <form action="{{route('logout')}}" method="POST">
+                            @csrf
+                            <button value="logout" type="submit">Logout</button>
+                        </form>
                         <a href="{{route('logout')}}" class="text-sm text-gray-700 dark:text-gray-500 underline" style="color: #edf2f7">logout</a>
                         <br>
                     @else

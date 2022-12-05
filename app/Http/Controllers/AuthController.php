@@ -105,63 +105,10 @@ class AuthController extends Controller
 
     public function home(Request $request)
     {
-//        $app_key = $request->get('app_key');
-//        if ($app_key){
-//            $application = Application::query()->where('app_key', '=', $app_key)->first();
-//            if ($application){
-//                return \redirect()->to($application->url_callback.'?code='.$application->code);
-//            }
-//        }
         return view('home');
     }
 
-//    public function authUser(Request $request){
-//        $get_access_token = $request->get('access_token');
-//        if (!$get_access_token && $get_access_token != $this->access_token){
-//            throw new \Exception('khong co quyen truy cap');
-//        }
-//        //tra ve user
-//        if (!Auth::check()){
-//            return Redirect::route('home');
-//        }
-//        return response()->json(\auth()->user());
-//    }
 
-//    public function authCallback(Request $request){
-//        $app_secret = $request->get('key_secret');
-//        if (!$app_secret){
-//            return Redirect::route('home');
-//        }
-//
-//        $response = Http::post( 'http://survey.hrpro.local:9000/login-by-hrpro', [
-//            'app_code' => $this->app_code,
-//            'app_secret' => $app_secret,
-//        ]);
-//        dd($response);
-//
-//        if ($response->failed()) {
-//            throw new \Exception('Co loi khi goi api hrpro');
-//        }
-//        return Redirect::to('http://survey.hrpro.local:9000');
-//    }
-
-//    public function callToSurveyHR(Request $request){
-//
-////        if (!Auth::check()){
-////            return Redirect::route('home');
-////        }
-//        $response = Http::post( 'http://survey.hrpro.local:9000/api/auth-by-hrpro', [
-//            'app_code' => $this->app_code,
-//            'app_secret' => $this->app_secret,
-//        ]);
-//        if ($response->failed()) {
-//            throw new \Exception('Co loi khi goi api hrpro');
-//        }
-//        if (!Auth::check()){
-//            return Redirect::route('home');
-//        }
-//        dd($response->json());
-//    }
 
     public function authorizeApp(Request $request)
     {
@@ -169,12 +116,17 @@ class AuthController extends Controller
 
         if ($app_key) {
             $application = Application::query()->where('app_key', '=', $app_key)->first();
-            if ($application && Auth::check()) {
+            if (!$application){
+                throw new \Exception('app ko ton tai.');
+            }
+            if (Auth::check()) {
                 $user_code = UserCode::query()->where('user_id', '=', Auth::id())->first();
                 if (!$user_code){
                     throw new \Exception('ko co user code');
                 }
                 return \redirect()->to($application->url_callback . '?code=' . $user_code['code']);
+            }else{
+                return Redirect::route('login');
             }
         }
         throw new \Exception('ko co app key');
